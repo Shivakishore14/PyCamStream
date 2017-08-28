@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>WebSocket demo</title>
+	</head>
+		<div>
+			<input id="log" placeholder="log"/>
+			<button onclick="sendLog()">send</button>
+			<br>
+			<hr>
+			<input id="cmd" placeholder="command here"/>
+			<button onclick="sendCmd()">send</button>
+			<br>
+			<hr>
+		</div>
+	<body>
+		<script>
+			var ws = new WebSocket("ws://127.0.0.1:5678/"),
+				messages = document.createElement('ul'),
+				inputCmd = document.getElementById('cmd'),
+				inputLog = document.getElementById('log');
+			ws.onmessage = function (event) {
+				var messages = document.getElementsByTagName('ul')[0],
+					message = document.createElement('li'),
+					content = document.createTextNode(event.data);
+				message.appendChild(content);
+				messages.appendChild(message);
+			};
+			document.body.appendChild(messages);
+			function sendLog(){
+				var obj = {"mode":"controller"}
+				obj.type = "log";
+				obj.data = inputLog.value;
+
+				var toSend = JSON.stringify(obj);
+				ws.send(toSend);
+			}
+			function sendCmd(){
+				var obj = {"mode":"controller"}
+				obj.type = "cmd";
+				obj.data = inputCmd.value;
+
+				var toSend = JSON.stringify(obj);
+				ws.send(toSend);
+			}
+		</script>
+	</body>
+</html>

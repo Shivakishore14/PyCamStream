@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">CamStreamer</string>
+    <string name="title_activity_camera">Camera</string>
+</resources>
