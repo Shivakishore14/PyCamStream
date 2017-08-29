@@ -3,45 +3,95 @@
 	<head>
 		<title>WebSocket demo</title>
 	</head>
+		<style>
+
+		</style>
 		<div>
 			<input id="log" placeholder="log"/>
-			<button onclick="sendLog()">send</button>
+			<button onclick="sendLogInput()">send</button>
 			<br>
 			<hr>
 			<input id="cmd" placeholder="command here"/>
-			<button onclick="sendCmd()">send</button>
+			<button onclick="sendCmdInput()">send</button>
 			<br>
 			<hr>
+			<img id="img" class="rot"/>
 		</div>
 	<body>
 		<script>
 			var ws = new WebSocket("ws://127.0.0.1:5678/"),
 				messages = document.createElement('ul'),
 				inputCmd = document.getElementById('cmd'),
-				inputLog = document.getElementById('log');
+				inputLog = document.getElementById('log'),
+				img = document.getElementById('img');
+			ws.onopen = function(event){
+				ws.send('{"mode":"controller", "type":"lo", "data":"hi"}')
+				console.log("opened");
+			}
 			ws.onmessage = function (event) {
 				var messages = document.getElementsByTagName('ul')[0],
 					message = document.createElement('li'),
 					content = document.createTextNode(event.data);
-				message.appendChild(content);
-				messages.appendChild(message);
+				console.log(typeof(event.data));
+				if (typeof(event.data) != 'object'){
+					message.appendChild(content);
+					messages.appendChild(message);
+				}else{
+					content = event.data;
+					content.type = "text/plain";
+					var reader = new FileReader();
+					console.log(content);
+					reader.onload = function(e){
+						console.log(e);
+						img.src = "data:image/jpg;base64," + reader.result;
+					};
+
+					reader.readAsText(content);
+
+				}
 			};
 			document.body.appendChild(messages);
-			function sendLog(){
+			function send(type, data){
 				var obj = {"mode":"controller"}
-				obj.type = "log";
-				obj.data = inputLog.value;
+				obj.type = type;
+				obj.data = data;
 
 				var toSend = JSON.stringify(obj);
 				ws.send(toSend);
 			}
-			function sendCmd(){
-				var obj = {"mode":"controller"}
-				obj.type = "cmd";
-				obj.data = inputCmd.value;
+			function sendCmdInput(){
+				data = inputCmd.value;
+				send("cmd", data);
+			}
+			function sendLogInput(){
+				data = inputLog.value;
+				send("log", data);
+			}
+			document.onkeydown = checkKey;
 
-				var toSend = JSON.stringify(obj);
-				ws.send(toSend);
+			function checkKey(e) {
+				e = e || window.event;
+				console.log(e);
+				if (e.keyCode == '38') {
+					// up arrow
+					send("cmd", "fwd");
+				}
+				else if (e.keyCode == '40') {
+					// down arrow
+					send("cmd", "bwd");
+				}
+				else if (e.keyCode == '37') {
+					// left arrow
+					send("cmd", "left");
+				}
+				else if (e.keyCode == '39') {
+					// right arrow
+					send("cmd", "right");
+				}
+				else if (e.keyCode == '79') {
+					// stop o key
+					send("cmd", "off");
+				}
 			}
 		</script>
 	</body>

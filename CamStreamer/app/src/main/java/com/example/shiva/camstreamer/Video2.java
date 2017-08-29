@@ -5,7 +5,9 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
+import android.graphics.YuvImage;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
@@ -37,6 +39,7 @@ import android.widget.Toast;
 import org.apache.commons.codec.binary.Base64;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -110,7 +113,7 @@ public class Video2 extends AppCompatActivity {
         });
         mFile = new File(Video2.this.getExternalFilesDir(null), "pic.jpg");
         client = new OkHttpClient();
-        Request request = new Request.Builder().url("ws://192.168.100.221:5678").build();
+        Request request = new Request.Builder().url("ws://192.168.1.6:5678").build();
         Video2.EchoWebSocketListener listener = new Video2.EchoWebSocketListener();
         ws = client.newWebSocket(request, listener);
 //        try{
@@ -340,10 +343,9 @@ public class Video2 extends AppCompatActivity {
             ByteBuffer buffer = mImage.getPlanes()[0].getBuffer();
             byte[] bytes = new byte[buffer.remaining()];
             buffer.get(bytes);
-            //byte[] bytes = ImageUtil.imageToByteArray(mImage);
+            //byte[] bytes1 = ImageUtil.imageToByteArray(mImage);
 
-            //byte[] bytes = ImageUtil.NV21toJPEG(ImageUtil.YUV_420_888toNV21(mImage), mImage.getWidth(), mImage.getHeight());
-            Log.d("s", String.valueOf(bytes.length));
+
             try {
 
 //                    OutputStream out = s.getOutputStream();
@@ -412,7 +414,7 @@ public class Video2 extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                takePictureButton.setText(takePictureButton.getText().toString() + "\n\n" + txt);
+                takePictureButton.setText(txt);
             }
         });
     }

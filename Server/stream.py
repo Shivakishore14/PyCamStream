@@ -3,19 +3,24 @@
 import asyncio
 import websockets
 import json
-from client import Client
 import cv2
 from PIL import Image
 import numpy as np
 import io
+from client import Client
+from controller import Controller
 
 async def consumer(message):
 	#print("< {}".format(message))
 	pass
 client = None
+controller = None
+train_mode = True
 async def consumer_handler(websocket, path):
 	global connected
 	global client
+	global controller
+	global train_mode
 	ra = websocket.remote_address
 	while True:
 		message = await websocket.recv()
@@ -36,15 +41,37 @@ async def consumer_handler(websocket, path):
 
 			flag, img = client.process_recvd_client(data)
 			if flag:
-				Image.open(io.BytesIO(img)).rotate(-90).show()
+				img = Image.open(io.BytesIO(img)).rotate(-90)
+				imgByteArr = io.BytesIO()
+				img.save(imgByteArr, format='JPEG')
+				imgByteArr = imgByteArr.getvalue()
+				if not train_mode:
+					pass
+				if controller != None:
+					client.lastImg = img
+					await controller.process_img(imgByteArr)
 
 		elif data['mode'] == 'controller':
+			#controller connection logic (only one client per session)
+			if controller != None:
+				if not controller.has_same_ra(ra):
+					await controller.send_log("Closing connection")
+					controller.close()
+					controller = None
+			if controller == None:
+				controller = Controller(websocket, ra)
+				await controller.send_log("hello created controller")
+				print("created", ra)
 			if client != None:
-				await client.process_recvd_controller(data)
+				if train_mode:
+					await client.process_recvd_controller(data)
+				else:
+					await websocket.send("In Detection Mode")
 			else:
 				await websocket.send("client not connected")
+
 		await consumer(message)
-	cv2.destroyWindow("preview")
+
 async def handler(websocket, path):
 	consumer_task = asyncio.ensure_future(consumer_handler(websocket, path))
 	done, pending = await asyncio.wait(

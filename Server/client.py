@@ -5,9 +5,14 @@ class Client:
 		self.ws = ws
 		self.ra = ra
 		self.i = 0
+		self.lastImg = None
+		self.controllCmds = ['fwd', 'left', 'right', 'bwd', 'off']
+
 	async def send_cmd(self, cmd):
 		msg = {"type":"cmd", "data":cmd}
 		msg = json.dumps(msg)
+		if cmd in self.controllCmds :
+			self.saveTrainImg(cmd)
 		await self.ws.send(msg)
 
 	async def send_log(self, log):
@@ -28,6 +33,10 @@ class Client:
 		else:
 			print("unknown type")
 		return (False, None)
+	def saveTrainImg(self, cmd):
+		self.i = self.i+1
+		self.lastImg.save("data/"+cmd+"/"+str(self.i)+".jpg", format='JPEG')
+
 	async def process_recvd_controller(self, data):
 		if data['type'] == 'log':
 			await self.send_log(data['data'])

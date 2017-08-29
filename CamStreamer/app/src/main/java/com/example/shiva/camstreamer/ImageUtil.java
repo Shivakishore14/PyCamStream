@@ -25,6 +25,7 @@ public final class ImageUtil {
             data = NV21toJPEG(
                     YUV_420_888toNV21(image),
                     image.getWidth(), image.getHeight());
+
         }
         return data;
     }
@@ -45,7 +46,7 @@ public final class ImageUtil {
         yBuffer.get(nv21, 0, ySize);
         vBuffer.get(nv21, ySize, vSize);
         uBuffer.get(nv21, ySize + vSize, uSize);
-
+        //byte[] nv211 = ImageUtil.YUV_420_888toI420SemiPlanar(yBuffer, uBuffer, vBuffer, image.getWidth(), image.getHeight(), false);
         return nv21;
     }
 
